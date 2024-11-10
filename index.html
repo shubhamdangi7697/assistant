@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Assistant</title>
+    <style>
+        /* Background styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74EBD5 0%, #ACB6E5 100%);
+            
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        /* Main container styling */
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 400px;
+        }
+
+        /* Heading styling */
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Input styling */
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        /* Button styling */
+        button {
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Response text styling */
+        #response {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Voice Assistant</h1>
+    <input type="text" id="commandInput" placeholder="Speak or enter command">
+    <br>
+    <button onclick="startSpeechRecognition()">Speak Command</button>
+    <div id="response"></div>
+</div>
+
+<script>
+    // Function to send the command to the Flask backend
+    function sendCommand(command) {
+        fetch('/command', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ command: command })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('response').textContent = "Assistant: " + (data.status === 'success' ? 'Command executed successfully.' : 'Error: ' + data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('response').textContent = 'Error in sending command';
+        });
+    }
+
+    // Function to start speech recognition and send the result to Flask
+    function startSpeechRecognition() {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+
+        recognition.onresult = function(event) {
+            const command = event.results[0][0].transcript;
+            document.getElementById('commandInput').value = command;  // Display command in the textbox
+            sendCommand(command);  // Send command to Flask backend for processing
+        };
+
+        recognition.start();
+    }
+</script>
+
+</body>
+</html>
